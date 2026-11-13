@@ -58,6 +58,7 @@
   .notes { font-size: 13px; color: var(--text-secondary); }
   .notes h2 { font-size: 15px; color: var(--text-primary); }
   .pos { color: var(--good); } .neg { color: var(--bad); }
+  .early { margin-top: 12px; padding: 8px 12px; border-left: 3px solid var(--text-muted); background: var(--surface-1); font-size: 13px; color: var(--text-secondary); }
   .err { padding: 16px; border: 1px solid var(--bad); border-radius: 10px; color: var(--bad); }
 </style>
 </head>
@@ -68,13 +69,14 @@
     <h1>Binsho</h1>
     <p>Rule-based multi-sleeve portfolio strategy, built in Python. Performance against buy-and-hold benchmarks.</p>
     <div class="meta" id="meta"></div>
+    <p class="early" id="early" hidden>Early results. Figures over less than 12 months are not statistically meaningful.</p>
   </header>
 
   <section class="tiles" id="tiles" aria-label="Key figures"></section>
 
   <section class="card">
     <h2>Growth of 100</h2>
-    <p class="desc">Time-weighted, net of fees, deposits removed. Benchmarks in EUR, accumulating (dividends included).</p>
+    <p class="desc">Time-weighted, after trading commissions, before taxes, deposits removed. Benchmarks in EUR, accumulating (dividends included).</p>
     <div class="legend" id="legend-idx"></div>
     <div class="chart" id="chart-idx"></div>
   </section>
@@ -94,9 +96,12 @@
 
   <section class="notes">
     <h2>Method</h2>
-    <p><b>Return</b> is time-weighted (TWR): deposits and withdrawals are removed, so the figure reflects the strategy, not the timing of capital.
+    <p><b>Return</b> is time-weighted (TWR), after trading commissions and before taxes: deposits and withdrawals are removed, so the figure reflects the strategy, not the timing of capital.
       <b>Drawdown</b> is measured on that return index. <b>Drawdown ratio</b> = Binsho's maximum drawdown divided by the benchmark's
-      over the same period; below 1 means shallower losses. <b>CAGR</b> and <b>Calmar ratio</b> (CAGR ÷ max drawdown) are shown after 12 months.</p>
+      over the same period; below 1 means shallower losses. It is shown once the benchmark has fallen at least 1 %.
+      <b>CAGR</b> and <b>Calmar ratio</b> (CAGR ÷ max drawdown) are shown after 12 months.</p>
+    <p><b>Out-of-sample only.</b> The record starts on the first day of operation. No backtest data is shown or blended in.
+      Benchmarks are fully invested buy-and-hold positions from the same start date.</p>
     <p>Only relative figures are published. Account size, deposits, positions and orders are never exported.
       Data is updated once a day. Paper mode means simulated orders on real market data.</p>
     <p>Not investment advice. Past results do not guarantee future returns.</p>
@@ -176,6 +181,7 @@ function drawdownOf(rows, key) {
 function render(m) {
   const mode = m.mode === "live" ? "Live" : "Paper";
   el("meta").innerHTML = `<span class="badge">${mode}</span><span>Since ${fmtDate(m.start)} · ${m.days} days</span><span>Data as of ${fmtDate(m.as_of)}</span>`;
+  el("early").hidden = m.days >= 365;
   const b = m.benchmarks, k = m.kpi, annual = k.cagr != null;
   const tiles = [
     ["Return (TWR)", pct(k.twr), cls(k.twr), "since start"],
