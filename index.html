@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Binsho – Performance Dashboard</title>
+<meta name="description" content="Public performance dashboard for Binsho, a rule-based portfolio strategy. Relative figures only.">
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-0: #f4f3ef; --surface-1: #fcfcfb;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #898781;
+    --grid: #e1e0d9; --border: #e1e0d9;
+    --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a;
+    --good: #006300; --bad: #b3261e;
+  }
+  @media (prefers-color-scheme: dark) {
+    .viz-root {
+      color-scheme: dark;
+      --surface-0: #121211; --surface-1: #1a1a19;
+      --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #898781;
+      --grid: #2c2c2a; --border: #2c2c2a;
+      --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+      --good: #0ca30c; --bad: #e66767;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .viz-root { background: var(--surface-0); color: var(--text-primary); min-height: 100vh;
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 20px 48px; }
+  header h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--text-secondary); }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; color: var(--text-secondary); font-size: 13px; }
+  .badge { border: 1px solid var(--border); border-radius: 999px; padding: 1px 10px; font-weight: 600; color: var(--text-primary); background: var(--surface-1); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 24px 0; }
+  .tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .label { font-size: 12px; color: var(--text-secondary); }
+  .tile .value { font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .tile .sub { font-size: 12px; color: var(--text-muted); }
+  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px 16px 8px; margin-bottom: 16px; }
+  .card h2 { font-size: 15px; margin: 0 0 2px; }
+  .card .desc { font-size: 12px; color: var(--text-secondary); margin: 0 0 8px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+  .legend span::before { content: ""; display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin-right: 6px; background: var(--c); }
+  .chart { position: relative; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart text { fill: var(--text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .tip { position: absolute; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.12); white-space: nowrap; display: none; }
+  .tip b { display: block; margin-bottom: 2px; }
+  .tip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--c); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--text-secondary); font-weight: 600; }
+  details { margin-top: 8px; font-size: 13px; color: var(--text-secondary); }
+  .notes { font-size: 13px; color: var(--text-secondary); }
+  .notes h2 { font-size: 15px; color: var(--text-primary); }
+  .pos { color: var(--good); } .neg { color: var(--bad); }
+  .err { padding: 16px; border: 1px solid var(--bad); border-radius: 10px; color: var(--bad); }
+</style>
+</head>
+<body>
+<div class="viz-root">
+<main>
+  <header>
+    <h1>Binsho</h1>
+    <p>Rule-based multi-sleeve portfolio strategy, built in Python. Performance against buy-and-hold benchmarks.</p>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <section class="tiles" id="tiles" aria-label="Key figures"></section>
+
+  <section class="card">
+    <h2>Growth of 100</h2>
+    <p class="desc">Time-weighted, net of fees, deposits removed. Benchmarks in EUR, accumulating (dividends included).</p>
+    <div class="legend" id="legend-idx"></div>
+    <div class="chart" id="chart-idx"></div>
+  </section>
+
+  <section class="card">
+    <h2>Drawdown</h2>
+    <p class="desc">Decline from the previous high.</p>
+    <div class="legend" id="legend-dd"></div>
+    <div class="chart" id="chart-dd"></div>
+  </section>
+
+  <section class="card">
+    <h2>Comparison</h2>
+    <table id="cmp"></table>
+    <details><summary>Daily values (table)</summary><div style="max-height:320px;overflow:auto"><table id="daily"></table></div></details>
+  </section>
+
+  <section class="notes">
+    <h2>Method</h2>
+    <p><b>Return</b> is time-weighted (TWR): deposits and withdrawals are removed, so the figure reflects the strategy, not the timing of capital.
+      <b>Drawdown</b> is measured on that return index. <b>Drawdown ratio</b> = Binsho's maximum drawdown divided by the benchmark's
+      over the same period; below 1 means shallower losses. <b>CAGR</b> and <b>Calmar ratio</b> (CAGR ÷ max drawdown) are shown after 12 months.</p>
+    <p>Only relative figures are published. Account size, deposits, positions and orders are never exported.
+      Data is updated once a day. Paper mode means simulated orders on real market data.</p>
+    <p>Not investment advice. Past results do not guarantee future returns.</p>
+  </section>
+</main>
+</div>
+
+<script>
+const S = [
+  { key: "idx",        name: "Binsho",     c: "var(--series-1)", w: 2.5 },
+  { key: "msci_world", name: "MSCI World", c: "var(--series-2)", w: 2 },
+  { key: "sp500",      name: "S&P 500",    c: "var(--series-3)", w: 2 },
+];
+const pct = (x, d = 1, sign = true) => x == null ? "–" : (sign && x > 0 ? "+" : "") + (x * 100).toFixed(d).replace("-", "−") + " %";
+const num = (x, d = 2) => x == null ? "–" : x.toFixed(d).replace("-", "−");
+const cls = x => x == null ? "" : x > 0 ? "pos" : x < 0 ? "neg" : "";
+const fmtDate = s => new Date(s + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+const el = (id) => document.getElementById(id);
+
+function legend(id, series) {
+  el(id).innerHTML = series.map(s => `<span style="--c:${s.c}">${s.name}</span>`).join("");
+}
+
+function lineChart(id, rows, series, opts) {
+  const host = el(id), W = 960, H = opts.h || 300, m = { t: 10, r: 12, b: 26, l: 48 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b, n = rows.length;
+  let lo = Infinity, hi = -Infinity;
+  rows.forEach(r => series.forEach(s => { const v = r[s.key]; if (v != null) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }));
+  if (opts.zeroTop) hi = 0;
+  const pad = (hi - lo) * 0.08 || 1; lo -= pad; if (!opts.zeroTop) hi += pad;
+  const x = i => m.l + (n === 1 ? iw / 2 : i * iw / (n - 1));
+  const y = v => m.t + (hi - v) / (hi - lo) * ih;
+  // ticks
+  const step = niceStep((hi - lo) / 5), ticks = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) ticks.push(v);
+  const xt = [0, Math.round((n - 1) / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.label}">`;
+  ticks.forEach(v => svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/>
+    <text x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${opts.tick(v)}</text>`);
+  xt.forEach(i => svg += `<text x="${x(i)}" y="${H - 6}" text-anchor="${i === 0 ? "start" : i === n - 1 ? "end" : "middle"}">${fmtDate(rows[i].d)}</text>`);
+  if (opts.base != null) svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(opts.base)}" y2="${y(opts.base)}" stroke="var(--text-muted)" stroke-width="1"/>`;
+  [...series].reverse().forEach(s => {
+    const d = rows.map((r, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(r[s.key]).toFixed(1)}`).join("");
+    svg += `<path d="${d}" fill="none" stroke="${s.c}" stroke-width="${s.w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+  svg += `<line id="${id}-x" y1="${m.t}" y2="${m.t + ih}" stroke="var(--text-muted)" stroke-width="1" visibility="hidden"/>`;
+  series.forEach((s, k) => svg += `<circle id="${id}-p${k}" r="4" fill="${s.c}" stroke="var(--surface-1)" stroke-width="2" visibility="hidden"/>`);
+  svg += `<rect x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/></svg><div class="tip"></div>`;
+  host.innerHTML = svg;
+
+  const svgEl = host.querySelector("svg"), tip = host.querySelector(".tip"), xl = el(id + "-x");
+  function show(evt) {
+    const b = svgEl.getBoundingClientRect(), sx = (evt.clientX - b.left) * W / b.width;
+    const i = Math.max(0, Math.min(n - 1, Math.round((sx - m.l) / iw * (n - 1))));
+    xl.setAttribute("x1", x(i)); xl.setAttribute("x2", x(i)); xl.setAttribute("visibility", "visible");
+    series.forEach((s, k) => { const p = el(`${id}-p${k}`); p.setAttribute("cx", x(i)); p.setAttribute("cy", y(rows[i][s.key])); p.setAttribute("visibility", "visible"); });
+    tip.innerHTML = `<b>${fmtDate(rows[i].d)}</b>` + series.map(s => `<div><i style="--c:${s.c}"></i>${s.name}: ${opts.tip(rows[i][s.key])}</div>`).join("");
+    tip.style.display = "block";
+    const px = x(i) * b.width / W, left = px + 14 + tip.offsetWidth > b.width ? px - tip.offsetWidth - 14 : px + 14;
+    tip.style.left = left + "px"; tip.style.top = "8px";
+  }
+  function hide() { xl.setAttribute("visibility", "hidden"); tip.style.display = "none";
+    series.forEach((s, k) => el(`${id}-p${k}`).setAttribute("visibility", "hidden")); }
+  svgEl.addEventListener("pointermove", show); svgEl.addEventListener("pointerleave", hide);
+}
+
+function niceStep(raw) {
+  const p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
+}
+
+function drawdownOf(rows, key) {
+  let peak = -Infinity;
+  return rows.map(r => { peak = Math.max(peak, r[key]); return r[key] / peak - 1; });
+}
+
+function render(m) {
+  const mode = m.mode === "live" ? "Live" : "Paper";
+  el("meta").innerHTML = `<span class="badge">${mode}</span><span>Since ${fmtDate(m.start)} · ${m.days} days</span><span>Data as of ${fmtDate(m.as_of)}</span>`;
+  const b = m.benchmarks, k = m.kpi, annual = k.cagr != null;
+  const tiles = [
+    ["Return (TWR)", pct(k.twr), cls(k.twr), "since start"],
+    ["vs MSCI World", pct(b.msci_world.excess), cls(b.msci_world.excess), "excess return"],
+    ["vs S&P 500", pct(b.sp500.excess), cls(b.sp500.excess), "excess return"],
+    ["Max drawdown", pct(k.max_dd, 1, false), "", `MSCI World ${pct(b.msci_world.max_dd, 1, false)}`],
+    ["Current drawdown", pct(k.current_dd, 1, false), "", "from last high"],
+    ["Calmar ratio", annual ? num(k.calmar) : "–", "", annual ? `CAGR ${pct(k.cagr)}` : "after 12 months"],
+  ];
+  el("tiles").innerHTML = tiles.map(([l, v, c, s]) => `<div class="tile"><div class="label">${l}</div><div class="value ${c}">${v}</div><div class="sub">${s}</div></div>`).join("");
+
+  const rows = m.series;
+  legend("legend-idx", S);
+  lineChart("chart-idx", rows, S, { label: "Growth of 100: Binsho vs benchmarks", base: 100, tick: v => num(v, 0), tip: v => num(v, 2) });
+
+  const ddRows = rows.map((r, i) => ({ d: r.d }));
+  S.forEach(s => drawdownOf(rows, s.key).forEach((v, i) => ddRows[i][s.key] = v));
+  legend("legend-dd", S);
+  lineChart("chart-dd", ddRows, S, { label: "Drawdown: Binsho vs benchmarks", h: 200, zeroTop: true, base: 0, tick: v => pct(v, 0, false), tip: v => pct(v, 1, false) });
+
+  el("cmp").innerHTML = `<tr><th></th><th>Return</th><th>Max drawdown</th><th>Binsho excess</th><th>Drawdown ratio</th></tr>
+    <tr><td>Binsho</td><td>${pct(k.twr)}</td><td>${pct(k.max_dd, 1, false)}</td><td>–</td><td>–</td></tr>` +
+    ["msci_world", "sp500"].map(key => `<tr><td>${b[key].name}</td><td>${pct(b[key].twr)}</td><td>${pct(b[key].max_dd, 1, false)}</td>
+      <td class="${cls(b[key].excess)}">${pct(b[key].excess)}</td><td>${num(b[key].dd_ratio)}</td></tr>`).join("");
+  el("daily").innerHTML = `<tr><th>Date</th><th>Binsho</th><th>MSCI World</th><th>S&amp;P 500</th><th>Binsho drawdown</th></tr>` +
+    [...rows].reverse().map(r => `<tr><td>${r.d}</td><td>${num(r.idx)}</td><td>${num(r.msci_world)}</td><td>${num(r.sp500)}</td><td>${pct(r.dd, 1, false)}</td></tr>`).join("");
+}
+
+fetch("metrics.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(render)
+  .catch(() => { el("tiles").outerHTML = `<p class="err">No data published yet.</p>`; });
+</script>
+</body>
+</html>
