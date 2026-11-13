@@ -54,9 +54,9 @@
   th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
   th:first-child, td:first-child { text-align: left; }
   th { color: var(--text-secondary); font-weight: 600; }
-  details { margin-top: 8px; font-size: 13px; color: var(--text-secondary); }
-  .notes { font-size: 13px; color: var(--text-secondary); }
-  .notes h2 { font-size: 15px; color: var(--text-primary); }
+  .method { padding-bottom: 4px; }
+  .method p { font-size: 13px; color: var(--text-secondary); margin: 6px 0 12px; }
+  .disclaimer { font-size: 12px; color: var(--text-muted); margin: 8px 0 0; }
   .pos { color: var(--good); } .neg { color: var(--bad); }
   .early { margin-top: 12px; padding: 8px 12px; border-left: 3px solid var(--text-muted); background: var(--surface-1); font-size: 13px; color: var(--text-secondary); }
   .err { padding: 16px; border: 1px solid var(--bad); border-radius: 10px; color: var(--bad); }
@@ -66,8 +66,8 @@
 <div class="viz-root">
 <main>
   <header>
-    <h1>Binsho</h1>
-    <p>Rule-based multi-sleeve portfolio strategy, built in Python. Performance against buy-and-hold benchmarks.</p>
+    <h1>Binsho Dashboard</h1>
+    <p>Rule-based multi-sleeve portfolio strategy, built in Python. Performance against buy-and-hold benchmarks. Relative figures only.</p>
     <div class="meta" id="meta"></div>
     <p class="early" id="early" hidden>Early results. Figures over less than 12 months are not statistically meaningful.</p>
   </header>
@@ -75,7 +75,7 @@
   <section class="tiles" id="tiles" aria-label="Key figures"></section>
 
   <section class="card">
-    <h2>Growth of 100</h2>
+    <h2>Growth</h2>
     <p class="desc">Time-weighted, after trading commissions, before taxes, deposits removed. Benchmarks in EUR, accumulating (dividends included).</p>
     <div class="legend" id="legend-idx"></div>
     <div class="chart" id="chart-idx"></div>
@@ -91,10 +91,9 @@
   <section class="card">
     <h2>Comparison</h2>
     <table id="cmp"></table>
-    <details><summary>Daily values (table)</summary><div style="max-height:320px;overflow:auto"><table id="daily"></table></div></details>
   </section>
 
-  <section class="notes">
+  <section class="card method">
     <h2>Method</h2>
     <p><b>Return</b> is time-weighted (TWR), after trading commissions and before taxes: deposits and withdrawals are removed, so the figure reflects the strategy, not the timing of capital.
       <b>Drawdown</b> is measured on that return index. <b>Drawdown ratio</b> = Binsho's maximum drawdown divided by the benchmark's
@@ -102,10 +101,9 @@
       <b>CAGR</b> and <b>Calmar ratio</b> (CAGR ÷ max drawdown) are shown after 12 months.</p>
     <p><b>Out-of-sample only.</b> The record starts on the first day of operation. No backtest data is shown or blended in.
       Benchmarks are fully invested buy-and-hold positions from the same start date.</p>
-    <p>Only relative figures are published. Account size, deposits, positions and orders are never exported.
-      Data is updated once a day. Paper mode means simulated orders on real market data.</p>
-    <p>Not investment advice. Past results do not guarantee future returns.</p>
   </section>
+
+  <p class="disclaimer">Not investment advice. Past results do not guarantee future returns.</p>
 </main>
 </div>
 
@@ -179,7 +177,7 @@ function drawdownOf(rows, key) {
 }
 
 function render(m) {
-  const mode = m.mode === "live" ? "Live" : "Paper";
+  const mode = m.mode === "live" ? "Live" : "Unattended paper mode live simulation";
   el("meta").innerHTML = `<span class="badge">${mode}</span><span>Since ${fmtDate(m.start)} · ${m.days} days</span><span>Data as of ${fmtDate(m.as_of)}</span>`;
   el("early").hidden = m.days >= 365;
   const b = m.benchmarks, k = m.kpi, annual = k.cagr != null;
@@ -195,7 +193,7 @@ function render(m) {
 
   const rows = m.series;
   legend("legend-idx", S);
-  lineChart("chart-idx", rows, S, { label: "Growth of 100: Binsho vs benchmarks", base: 100, tick: v => num(v, 0), tip: v => num(v, 2) });
+  lineChart("chart-idx", rows, S, { label: "Growth: Binsho vs benchmarks", base: 100, tick: v => num(v, 0) + " %", tip: v => num(v, 2) + " %" });
 
   const ddRows = rows.map((r, i) => ({ d: r.d }));
   S.forEach(s => drawdownOf(rows, s.key).forEach((v, i) => ddRows[i][s.key] = v));
@@ -206,8 +204,6 @@ function render(m) {
     <tr><td>Binsho</td><td>${pct(k.twr)}</td><td>${pct(k.max_dd, 1, false)}</td><td>–</td><td>–</td></tr>` +
     ["msci_world", "sp500"].map(key => `<tr><td>${b[key].name}</td><td>${pct(b[key].twr)}</td><td>${pct(b[key].max_dd, 1, false)}</td>
       <td class="${cls(b[key].excess)}">${pct(b[key].excess)}</td><td>${num(b[key].dd_ratio)}</td></tr>`).join("");
-  el("daily").innerHTML = `<tr><th>Date</th><th>Binsho</th><th>MSCI World</th><th>S&amp;P 500</th><th>Binsho drawdown</th></tr>` +
-    [...rows].reverse().map(r => `<tr><td>${r.d}</td><td>${num(r.idx)}</td><td>${num(r.msci_world)}</td><td>${num(r.sp500)}</td><td>${pct(r.dd, 1, false)}</td></tr>`).join("");
 }
 
 fetch("metrics.json", { cache: "no-store" })
