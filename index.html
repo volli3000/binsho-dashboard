@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Binsho – Performance Dashboard</title>
+<title>Binsho Dashboard</title>
 <meta name="description" content="Public performance dashboard for Binsho, a rule-based portfolio strategy. Relative figures only.">
 <style>
   .viz-root {
@@ -32,7 +32,6 @@
   header h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
   header p { margin: 0; color: var(--text-secondary); }
   .meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; color: var(--text-secondary); font-size: 13px; }
-  .badge { border: 1px solid var(--border); border-radius: 999px; padding: 1px 10px; font-weight: 600; color: var(--text-primary); background: var(--surface-1); }
   .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 24px 0; }
   .tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
   .tile .label { font-size: 12px; color: var(--text-secondary); }
@@ -58,7 +57,6 @@
   .method p { font-size: 13px; color: var(--text-secondary); margin: 6px 0 12px; }
   .disclaimer { font-size: 12px; color: var(--text-muted); margin: 8px 0 0; }
   .pos { color: var(--good); } .neg { color: var(--bad); }
-  .early { margin-top: 12px; padding: 8px 12px; border-left: 3px solid var(--text-muted); background: var(--surface-1); font-size: 13px; color: var(--text-secondary); }
   .err { padding: 16px; border: 1px solid var(--bad); border-radius: 10px; color: var(--bad); }
 </style>
 </head>
@@ -69,7 +67,6 @@
     <h1>Binsho Dashboard</h1>
     <p>Rule-based multi-sleeve portfolio strategy, built in Python. Performance against buy-and-hold benchmarks. Relative figures only.</p>
     <div class="meta" id="meta"></div>
-    <p class="early" id="early" hidden>Early results. Figures over less than 12 months are not statistically meaningful.</p>
   </header>
 
   <section class="tiles" id="tiles" aria-label="Key figures"></section>
@@ -178,8 +175,7 @@ function drawdownOf(rows, key) {
 
 function render(m) {
   const mode = m.mode === "live" ? "Live" : "Unattended paper mode live simulation";
-  el("meta").innerHTML = `<span class="badge">${mode}</span><span>Since ${fmtDate(m.start)} · ${m.days} days</span><span>Data as of ${fmtDate(m.as_of)}</span>`;
-  el("early").hidden = m.days >= 365;
+  el("meta").innerHTML = `<span>${mode}</span><span>Since ${fmtDate(m.start)} · ${m.days} days</span><span>Data as of ${fmtDate(m.as_of)}</span>`;
   const b = m.benchmarks, k = m.kpi, annual = k.cagr != null;
   const tiles = [
     ["Return (TWR)", pct(k.twr), cls(k.twr), "since start"],
