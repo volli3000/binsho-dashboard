@@ -38,6 +38,10 @@
   .tile .value { font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: 2px; }
   .tile .sub { font-size: 12px; color: var(--text-muted); }
   .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px 16px 8px; margin-bottom: 16px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .pair .card { margin-bottom: 0; display: flex; flex-direction: column; }
+  .pair .legend { margin-top: auto; }
+  @media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
   .card h2 { font-size: 15px; margin: 0 0 2px; }
   .card .desc { font-size: 12px; color: var(--text-secondary); margin: 0 0 8px; }
   .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
@@ -52,6 +56,7 @@
   table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
   th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
   th:first-child, td:first-child { text-align: left; }
+  td:not(:first-child) { white-space: nowrap; }
   th { color: var(--text-secondary); font-weight: 600; }
   .method { padding-bottom: 4px; }
   .method p { font-size: 13px; color: var(--text-secondary); margin: 6px 0 12px; }
@@ -71,6 +76,7 @@
 
   <section class="tiles" id="tiles" aria-label="Key figures"></section>
 
+  <div class="pair">
   <section class="card">
     <h2>Growth</h2>
     <p class="desc">Time-weighted, after trading commissions, before taxes, deposits removed. Benchmarks in EUR, accumulating (dividends included).</p>
@@ -84,6 +90,7 @@
     <div class="legend" id="legend-dd"></div>
     <div class="chart" id="chart-dd"></div>
   </section>
+  </div>
 
   <section class="card">
     <h2>Comparison</h2>
@@ -121,7 +128,7 @@ function legend(id, series) {
 }
 
 function lineChart(id, rows, series, opts) {
-  const host = el(id), W = 960, H = opts.h || 300, m = { t: 10, r: 12, b: 26, l: 48 };
+  const host = el(id), W = 520, H = opts.h || 320, m = { t: 10, r: 12, b: 26, l: 48 };
   const iw = W - m.l - m.r, ih = H - m.t - m.b, n = rows.length;
   let lo = Infinity, hi = -Infinity;
   rows.forEach(r => series.forEach(s => { const v = r[s.key]; if (v != null) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }));
@@ -194,7 +201,7 @@ function render(m) {
   const ddRows = rows.map((r, i) => ({ d: r.d }));
   S.forEach(s => drawdownOf(rows, s.key).forEach((v, i) => ddRows[i][s.key] = v));
   legend("legend-dd", S);
-  lineChart("chart-dd", ddRows, S, { label: "Drawdown: Binsho vs benchmarks", h: 200, zeroTop: true, base: 0, tick: v => pct(v, 0, false), tip: v => pct(v, 1, false) });
+  lineChart("chart-dd", ddRows, S, { label: "Drawdown: Binsho vs benchmarks", zeroTop: true, base: 0, tick: v => pct(v, 0, false), tip: v => pct(v, 1, false) });
 
   el("cmp").innerHTML = `<tr><th></th><th>Return</th><th>Max drawdown</th><th>Binsho excess</th><th>Drawdown ratio</th></tr>
     <tr><td>Binsho</td><td>${pct(k.twr)}</td><td>${pct(k.max_dd, 1, false)}</td><td>–</td><td>–</td></tr>` +
