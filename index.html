@@ -7,7 +7,6 @@
 <meta name="description" content="Public performance dashboard for Binsho, a rule-based portfolio strategy. Relative figures only.">
 <style>
   .viz-root {
-    --fs: 1;
     color-scheme: light;
     --surface-0: #f4f3ef; --surface-1: #fcfcfb;
     --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #898781;
@@ -15,196 +14,113 @@
     --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a;
     --good: #006300; --bad: #b3261e;
   }
-  .viz-root[data-theme="dark"] {
-    color-scheme: dark;
-    --surface-0: #121211; --surface-1: #1a1a19;
-    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #898781;
-    --grid: #2c2c2a; --border: #2c2c2a;
-    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
-    --good: #0ca30c; --bad: #e66767;
+  @media (prefers-color-scheme: dark) {
+    .viz-root {
+      color-scheme: dark;
+      --surface-0: #121211; --surface-1: #1a1a19;
+      --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #898781;
+      --grid: #2c2c2a; --border: #2c2c2a;
+      --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+      --good: #0ca30c; --bad: #e66767;
+    }
   }
   * { box-sizing: border-box; }
   body { margin: 0; }
   .viz-root { background: var(--surface-0); color: var(--text-primary); min-height: 100vh;
-    font: calc(15px * var(--fs))/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   main { max-width: 1040px; margin: 0 auto; padding: 32px 20px 48px; }
-  header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-start; justify-content: space-between; }
-  header .intro { flex: 1 1 420px; }
-  .a11y { display: flex; gap: 8px; flex-wrap: wrap; }
-  .a11y .grp { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface-1); }
-  .a11y button { font: inherit; font-size: calc(13px * var(--fs)); color: var(--text-primary); background: transparent; border: 0;
-    min-width: 36px; min-height: 34px; padding: 4px 10px; cursor: pointer; }
-  .a11y .grp button + button { border-left: 1px solid var(--border); }
-  .a11y button[aria-pressed="true"] { background: var(--series-1); color: #fff; }
-  .a11y button:disabled { color: var(--text-muted); cursor: default; }
-  .a11y button:focus-visible { outline: 2px solid var(--series-1); outline-offset: -2px; }
-  header h1 { font-size: calc(26px * var(--fs)); margin: 0 0 4px; letter-spacing: -0.01em; }
+  header h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
   header p { margin: 0; color: var(--text-secondary); }
-  .meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; color: var(--text-secondary); font-size: calc(13px * var(--fs)); }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; color: var(--text-secondary); font-size: 13px; }
   .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 24px 0; }
   .tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
-  .tile .label { font-size: calc(12px * var(--fs)); color: var(--text-secondary); }
-  .tile .value { font-size: calc(26px * var(--fs)); font-weight: 650; font-variant-numeric: tabular-nums; margin-top: 2px; }
-  .tile .sub { font-size: calc(12px * var(--fs)); color: var(--text-muted); }
+  .tile .label { font-size: 12px; color: var(--text-secondary); }
+  .tile .value { font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .tile .sub { font-size: 12px; color: var(--text-muted); }
   .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px 16px 8px; margin-bottom: 16px; }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
   .pair .card { margin-bottom: 0; display: flex; flex-direction: column; }
   .pair .legend { margin-top: auto; }
   @media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
-  .card h2 { font-size: calc(15px * var(--fs)); margin: 0 0 2px; }
-  .card .desc { font-size: calc(12px * var(--fs)); color: var(--text-secondary); margin: 0 0 8px; }
-  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: calc(12px * var(--fs)); color: var(--text-secondary); margin-bottom: 6px; }
+  .card h2 { font-size: 15px; margin: 0 0 2px; }
+  .card .desc { font-size: 12px; color: var(--text-secondary); margin: 0 0 8px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
   .legend span::before { content: ""; display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin-right: 6px; background: var(--c); }
   .chart { position: relative; }
   .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-  .chart text { fill: var(--text-muted); font-size: calc(11px * var(--fs)); font-variant-numeric: tabular-nums; }
+  .chart text { fill: var(--text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
   .tip { position: absolute; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
-    padding: 6px 10px; font-size: calc(12px * var(--fs)); box-shadow: 0 2px 8px rgba(0,0,0,.12); white-space: nowrap; display: none; }
+    padding: 6px 10px; font-size: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.12); white-space: nowrap; display: none; }
   .tip b { display: block; margin-bottom: 2px; }
   .tip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--c); }
-  table { width: 100%; border-collapse: collapse; font-size: calc(13px * var(--fs)); font-variant-numeric: tabular-nums; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
   th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
   th:first-child, td:first-child { text-align: left; }
   td:not(:first-child) { white-space: nowrap; }
   th { color: var(--text-secondary); font-weight: 600; }
   .method { padding-bottom: 4px; }
-  .method p { font-size: calc(13px * var(--fs)); color: var(--text-secondary); margin: 6px 0 12px; }
-  .disclaimer { font-size: calc(12px * var(--fs)); color: var(--text-muted); margin: 8px 0 0; }
+  .method p { font-size: 13px; color: var(--text-secondary); margin: 6px 0 12px; }
+  .disclaimer { font-size: 12px; color: var(--text-muted); margin: 8px 0 0; }
   .pos { color: var(--good); } .neg { color: var(--bad); }
   .err { padding: 16px; border: 1px solid var(--bad); border-radius: 10px; color: var(--bad); }
 </style>
 </head>
 <body>
-<div class="viz-root" id="root">
+<div class="viz-root">
 <main>
   <header>
-    <div class="intro">
-      <h1>Binsho Dashboard</h1>
-      <p data-i18n="lead"></p>
-      <div class="meta" id="meta"></div>
-    </div>
-    <div class="a11y" role="toolbar" id="a11y">
-      <div class="grp">
-        <button type="button" id="lang-de" lang="de">DE</button>
-        <button type="button" id="lang-en" lang="en">EN</button>
-      </div>
-      <div class="grp">
-        <button type="button" id="fs-dn">A−</button>
-        <button type="button" id="fs-up">A+</button>
-      </div>
-      <div class="grp">
-        <button type="button" id="theme"></button>
-      </div>
-    </div>
+    <h1>Binsho Dashboard</h1>
+    <p>Rule-based multi-sleeve portfolio strategy, AI-assisted and built in Python on the principle of “verification before implementation”. Performance against buy-and-hold benchmarks, shown in relative figures only.</p>
+    <div class="meta" id="meta"></div>
   </header>
 
-  <section class="tiles" id="tiles"></section>
+  <section class="tiles" id="tiles" aria-label="Key figures"></section>
 
   <div class="pair">
   <section class="card">
-    <h2 data-i18n="growth"></h2>
-    <p class="desc" data-i18n="growthDesc"></p>
+    <h2>Growth</h2>
+    <p class="desc">Time-weighted, after trading commissions, before taxes, deposits removed. Benchmarks in EUR, accumulating (dividends included).</p>
     <div class="legend" id="legend-idx"></div>
     <div class="chart" id="chart-idx"></div>
   </section>
 
   <section class="card">
-    <h2 data-i18n="drawdown"></h2>
-    <p class="desc" data-i18n="drawdownDesc"></p>
+    <h2>Drawdown</h2>
+    <p class="desc">Decline from the previous high.</p>
     <div class="legend" id="legend-dd"></div>
     <div class="chart" id="chart-dd"></div>
   </section>
   </div>
 
   <section class="card">
-    <h2 data-i18n="comparison"></h2>
+    <h2>Comparison</h2>
     <table id="cmp"></table>
   </section>
 
   <section class="card method">
-    <h2 data-i18n="method"></h2>
-    <p data-i18n="method1"></p>
-    <p data-i18n="method2"></p>
+    <h2>Method</h2>
+    <p><b>Return</b> is time-weighted (TWR), after trading commissions and before taxes: deposits and withdrawals are removed, so the figure reflects the strategy, not the timing of capital.
+      <b>Drawdown</b> is measured on that return index. <b>Drawdown ratio</b> = Binsho's maximum drawdown divided by the benchmark's
+      over the same period; below 1 means shallower losses. It is shown once the benchmark has fallen at least 1 %.
+      <b>CAGR</b> and <b>Calmar ratio</b> (CAGR ÷ max drawdown) are shown after 12 months.</p>
+    <p><b>Out-of-sample only.</b> The record starts on the first day of operation. No backtest data is shown or blended in.
+      Benchmarks are fully invested buy-and-hold positions from the same start date.</p>
   </section>
 
-  <p class="disclaimer" data-i18n="disclaimer"></p>
+  <p class="disclaimer">Not investment advice. Past results do not guarantee future returns.</p>
 </main>
 </div>
 
 <script>
-const T = {
-  en: {
-    lead: "Rule-based multi-sleeve portfolio strategy, built in Python. Performance against buy-and-hold benchmarks. Relative figures only.",
-    growth: "Growth",
-    growthDesc: "Time-weighted, after trading commissions, before taxes, deposits removed. Benchmarks in EUR, accumulating (dividends included).",
-    drawdown: "Drawdown",
-    drawdownDesc: "Decline from the previous high.",
-    comparison: "Comparison",
-    method: "Method",
-    method1: "<b>Return</b> is time-weighted (TWR), after trading commissions and before taxes: deposits and withdrawals are removed, so the figure reflects the strategy, not the timing of capital. <b>Drawdown</b> is measured on that return index. <b>Drawdown ratio</b> = Binsho's maximum drawdown divided by the benchmark's over the same period; below 1 means shallower losses. It is shown once the benchmark has fallen at least 1 %. <b>CAGR</b> and <b>Calmar ratio</b> (CAGR ÷ max drawdown) are shown after 12 months.",
-    method2: "<b>Out-of-sample only.</b> The record starts on the first day of operation. No backtest data is shown or blended in. Benchmarks are fully invested buy-and-hold positions from the same start date.",
-    disclaimer: "Not investment advice. Past results do not guarantee future returns.",
-    keyFigures: "Key figures",
-    live: "Live", paper: "Unattended paper mode live simulation",
-    since: (d, n) => `Since ${d} · ${n} days`, asOf: d => `Data as of ${d}`,
-    twr: "Return (TWR)", sinceStart: "since start", vs: n => `vs ${n}`, excess: "excess return",
-    maxDd: "Max drawdown", curDd: "Current drawdown", fromHigh: "from last high",
-    calmar: "Calmar ratio", after12: "after 12 months",
-    thReturn: "Return", thMaxDd: "Max drawdown", thExcess: "Binsho excess", thRatio: "Drawdown ratio",
-    chartGrowth: "Growth: Binsho vs benchmarks", chartDd: "Drawdown: Binsho vs benchmarks",
-    noData: "No data published yet.",
-    toolbar: "Display settings", langDe: "Deutsch", langEn: "English",
-    smaller: "Smaller text", larger: "Larger text", toDark: "Switch to dark mode", toLight: "Switch to light mode",
-  },
-  de: {
-    lead: "Regelbasierte Portfoliostrategie mit mehreren Teilportfolios, entwickelt in Python. Wertentwicklung im Vergleich zu Buy-and-hold-Benchmarks. Nur relative Kennzahlen.",
-    growth: "Wachstum",
-    growthDesc: "Zeitgewichtet, nach Handelsgebühren, vor Steuern, bereinigt um Einzahlungen. Benchmarks in EUR, thesaurierend (Dividenden enthalten).",
-    drawdown: "Drawdown",
-    drawdownDesc: "Rückgang vom vorherigen Hoch.",
-    comparison: "Vergleich",
-    method: "Methode",
-    method1: "<b>Rendite</b> ist zeitgewichtet (TWR), nach Handelsgebühren und vor Steuern: Ein- und Auszahlungen sind herausgerechnet, die Kennzahl zeigt also die Strategie, nicht den Zeitpunkt des Kapitals. <b>Drawdown</b> wird auf diesem Renditeindex gemessen. <b>Drawdown-Verhältnis</b> = maximaler Drawdown von Binsho geteilt durch den der Benchmark im selben Zeitraum; ein Wert unter 1 bedeutet flachere Verluste. Es wird angezeigt, sobald die Benchmark mindestens 1 % gefallen ist. <b>CAGR</b> und <b>Calmar-Ratio</b> (CAGR ÷ max. Drawdown) werden nach 12 Monaten angezeigt.",
-    method2: "<b>Nur Out-of-Sample.</b> Die Aufzeichnung beginnt am ersten Betriebstag. Es werden keine Backtest-Daten gezeigt oder eingemischt. Benchmarks sind voll investierte Buy-and-hold-Positionen ab demselben Startdatum.",
-    disclaimer: "Keine Anlageberatung. Vergangene Ergebnisse sind keine Garantie für künftige Renditen.",
-    keyFigures: "Kennzahlen",
-    live: "Live", paper: "Unbeaufsichtigte Live-Simulation mit Papierdepot",
-    since: (d, n) => `Seit ${d} · ${n} Tage`, asOf: d => `Datenstand ${d}`,
-    twr: "Rendite (TWR)", sinceStart: "seit Start", vs: n => `ggü. ${n}`, excess: "Mehrrendite",
-    maxDd: "Max. Drawdown", curDd: "Aktueller Drawdown", fromHigh: "vom letzten Hoch",
-    calmar: "Calmar-Ratio", after12: "nach 12 Monaten",
-    thReturn: "Rendite", thMaxDd: "Max. Drawdown", thExcess: "Mehrrendite Binsho", thRatio: "Drawdown-Verhältnis",
-    chartGrowth: "Wachstum: Binsho im Vergleich zu Benchmarks", chartDd: "Drawdown: Binsho im Vergleich zu Benchmarks",
-    noData: "Noch keine Daten veröffentlicht.",
-    toolbar: "Darstellung", langDe: "Deutsch", langEn: "English",
-    smaller: "Schrift kleiner", larger: "Schrift größer", toDark: "Zum dunklen Modus wechseln", toLight: "Zum hellen Modus wechseln",
-  },
-};
-
-// ---- settings (remembered per visitor where the browser allows it) ----
-const store = {
-  get(k) { try { return localStorage.getItem("binsho." + k); } catch (e) { return null; } },
-  set(k, v) { try { localStorage.setItem("binsho." + k, v); } catch (e) {} },
-};
-const FS = [0.9, 1, 1.15, 1.3];
-const sysDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
-let lang = store.get("lang") || ((navigator.language || "en").toLowerCase().startsWith("de") ? "de" : "en");
-if (!T[lang]) lang = "en";
-let fsIdx = Math.max(0, Math.min(FS.length - 1, parseInt(store.get("fs") ?? "1", 10) || 0));
-let theme = store.get("theme") || (sysDark && sysDark.matches ? "dark" : "light");
-let data = null;
-const t = () => T[lang];
-
 const S = [
   { key: "idx",        name: "Binsho",     c: "var(--series-1)", w: 2.5 },
   { key: "msci_world", name: "MSCI World", c: "var(--series-2)", w: 2 },
   { key: "sp500",      name: "S&P 500",    c: "var(--series-3)", w: 2 },
 ];
-const dec = s => lang === "de" ? s.replace(".", ",") : s;
-const pct = (x, d = 1, sign = true) => x == null ? "–" : (sign && x > 0 ? "+" : "") + dec((x * 100).toFixed(d)).replace("-", "−") + " %";
-const num = (x, d = 2) => x == null ? "–" : dec(x.toFixed(d)).replace("-", "−");
+const pct = (x, d = 1, sign = true) => x == null ? "–" : (sign && x > 0 ? "+" : "") + (x * 100).toFixed(d).replace("-", "−") + " %";
+const num = (x, d = 2) => x == null ? "–" : x.toFixed(d).replace("-", "−");
 const cls = x => x == null ? "" : x > 0 ? "pos" : x < 0 ? "neg" : "";
-const fmtDate = s => new Date(s + "T00:00:00").toLocaleDateString(lang === "de" ? "de-DE" : "en-GB", { day: "numeric", month: "short", year: "numeric" });
+const fmtDate = s => new Date(s + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 const el = (id) => document.getElementById(id);
 
 function legend(id, series) {
@@ -265,76 +181,38 @@ function drawdownOf(rows, key) {
 }
 
 function render(m) {
-  const L = t();
-  const mode = m.mode === "live" ? L.live : L.paper;
-  el("meta").innerHTML = `<span>${mode}</span><span>${L.since(fmtDate(m.start), m.days)}</span><span>${L.asOf(fmtDate(m.as_of))}</span>`;
+  const mode = m.mode === "live" ? "Live" : "Unattended paper mode live simulation";
+  el("meta").innerHTML = `<span>${mode}</span><span>Since ${fmtDate(m.start)} · ${m.days} days</span><span>Data as of ${fmtDate(m.as_of)}</span>`;
   const b = m.benchmarks, k = m.kpi, annual = k.cagr != null;
   const tiles = [
-    [L.twr, pct(k.twr), cls(k.twr), L.sinceStart],
-    [L.vs("MSCI World"), pct(b.msci_world.excess), cls(b.msci_world.excess), L.excess],
-    [L.vs("S&P 500"), pct(b.sp500.excess), cls(b.sp500.excess), L.excess],
-    [L.maxDd, pct(k.max_dd, 1, false), "", `MSCI World ${pct(b.msci_world.max_dd, 1, false)}`],
-    [L.curDd, pct(k.current_dd, 1, false), "", L.fromHigh],
-    [L.calmar, annual ? num(k.calmar) : "–", "", annual ? `CAGR ${pct(k.cagr)}` : L.after12],
+    ["Return (TWR)", pct(k.twr), cls(k.twr), "since start"],
+    ["vs MSCI World", pct(b.msci_world.excess), cls(b.msci_world.excess), "excess return"],
+    ["vs S&P 500", pct(b.sp500.excess), cls(b.sp500.excess), "excess return"],
+    ["Max drawdown", pct(k.max_dd, 1, false), "", `MSCI World ${pct(b.msci_world.max_dd, 1, false)}`],
+    ["Current drawdown", pct(k.current_dd, 1, false), "", "from last high"],
+    ["Calmar ratio", annual ? num(k.calmar) : "–", "", annual ? `CAGR ${pct(k.cagr)}` : "after 12 months"],
   ];
   el("tiles").innerHTML = tiles.map(([l, v, c, s]) => `<div class="tile"><div class="label">${l}</div><div class="value ${c}">${v}</div><div class="sub">${s}</div></div>`).join("");
 
   const rows = m.series;
   legend("legend-idx", S);
-  lineChart("chart-idx", rows, S, { label: L.chartGrowth, base: 100, tick: v => num(v, 0) + " %", tip: v => num(v, 2) + " %" });
+  lineChart("chart-idx", rows, S, { label: "Growth: Binsho vs benchmarks", base: 100, tick: v => num(v, 0) + " %", tip: v => num(v, 2) + " %" });
 
   const ddRows = rows.map((r, i) => ({ d: r.d }));
   S.forEach(s => drawdownOf(rows, s.key).forEach((v, i) => ddRows[i][s.key] = v));
   legend("legend-dd", S);
-  lineChart("chart-dd", ddRows, S, { label: L.chartDd, zeroTop: true, base: 0, tick: v => pct(v, 0, false), tip: v => pct(v, 1, false) });
+  lineChart("chart-dd", ddRows, S, { label: "Drawdown: Binsho vs benchmarks", zeroTop: true, base: 0, tick: v => pct(v, 0, false), tip: v => pct(v, 1, false) });
 
-  el("cmp").innerHTML = `<tr><th></th><th>${L.thReturn}</th><th>${L.thMaxDd}</th><th>${L.thExcess}</th><th>${L.thRatio}</th></tr>
+  el("cmp").innerHTML = `<tr><th></th><th>Return</th><th>Max drawdown</th><th>Binsho excess</th><th>Drawdown ratio</th></tr>
     <tr><td>Binsho</td><td>${pct(k.twr)}</td><td>${pct(k.max_dd, 1, false)}</td><td>–</td><td>–</td></tr>` +
     ["msci_world", "sp500"].map(key => `<tr><td>${b[key].name}</td><td>${pct(b[key].twr)}</td><td>${pct(b[key].max_dd, 1, false)}</td>
       <td class="${cls(b[key].excess)}">${pct(b[key].excess)}</td><td>${num(b[key].dd_ratio)}</td></tr>`).join("");
 }
 
-// ---- apply settings ----
-function applyText() {
-  const L = t();
-  document.documentElement.lang = lang;
-  document.querySelectorAll("[data-i18n]").forEach(n => n.innerHTML = L[n.dataset.i18n]);
-  el("tiles") && el("tiles").setAttribute("aria-label", L.keyFigures);
-  el("a11y").setAttribute("aria-label", L.toolbar);
-  el("lang-de").setAttribute("aria-pressed", lang === "de"); el("lang-de").title = L.langDe;
-  el("lang-en").setAttribute("aria-pressed", lang === "en"); el("lang-en").title = L.langEn;
-  el("fs-dn").setAttribute("aria-label", L.smaller); el("fs-dn").title = L.smaller;
-  el("fs-up").setAttribute("aria-label", L.larger); el("fs-up").title = L.larger;
-  applyTheme();
-  const err = document.querySelector(".err"); if (err) err.textContent = L.noData;
-  if (data) render(data);
-}
-function applyFs() {
-  el("root").style.setProperty("--fs", FS[fsIdx]);
-  el("fs-dn").disabled = fsIdx === 0;
-  el("fs-up").disabled = fsIdx === FS.length - 1;
-}
-function applyTheme() {
-  el("root").dataset.theme = theme;
-  const L = t(), label = theme === "dark" ? L.toLight : L.toDark;
-  el("theme").textContent = theme === "dark" ? "☀" : "☾";
-  el("theme").setAttribute("aria-label", label); el("theme").title = label;
-}
-
-el("lang-de").addEventListener("click", () => { lang = "de"; store.set("lang", lang); applyText(); });
-el("lang-en").addEventListener("click", () => { lang = "en"; store.set("lang", lang); applyText(); });
-el("fs-dn").addEventListener("click", () => { if (fsIdx > 0) { fsIdx--; store.set("fs", fsIdx); applyFs(); } });
-el("fs-up").addEventListener("click", () => { if (fsIdx < FS.length - 1) { fsIdx++; store.set("fs", fsIdx); applyFs(); } });
-el("theme").addEventListener("click", () => { theme = theme === "dark" ? "light" : "dark"; store.set("theme", theme); applyTheme(); });
-if (sysDark && sysDark.addEventListener) sysDark.addEventListener("change", e => { if (!store.get("theme")) { theme = e.matches ? "dark" : "light"; applyTheme(); } });
-
-applyFs();
-applyText();
-
 fetch("metrics.json", { cache: "no-store" })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(m => { data = m; render(m); })
-  .catch(() => { el("tiles").outerHTML = `<p class="err">${t().noData}</p>`; });
+  .then(render)
+  .catch(() => { el("tiles").outerHTML = `<p class="err">No data published yet.</p>`; });
 </script>
 </body>
 </html>
