@@ -81,14 +81,6 @@
 </div>
 
 <script>
-// ===========================================================================================
-// PLATZHALTER: Kontaktangaben hier eintragen (einzige Stelle in dieser Datei).
-// Die Angaben stehen absichtlich in Teilen und werden erst im Browser zusammengesetzt, damit
-// Anschrift und E-Mail-Adresse nicht als zusammenhängender Klartext im HTML stehen.
-// Jeder Eintrag ist eine Liste von Teilstücken, die ohne Trennzeichen aneinandergehängt werden,
-// z. B. strasse: ["Muster", "straße 1"]. Die E-Mail-Adresse getrennt nach Teil vor und nach dem @
-// eintragen, z. B. emailVor: ["max.", "muster"], emailNach: ["example", ".de"]; das @ setzt das Script.
-// ===========================================================================================
 const KONTAKT = {
   name:      ["Vol", "ker Wie", "ben"],
   strasse:   ["Ringbahn", "stra", "ße 1", "9"],
@@ -96,7 +88,6 @@ const KONTAKT = {
   emailVor:  ["binsho", ".dash", "board"],
   emailNach: ["proton", "mail", ".com"],
 };
-// ===========================================================================================
 
 const T = {
   de: {
@@ -125,7 +116,6 @@ const T = {
   },
 };
 
-// settings shared with the dashboard (same keys)
 const store = {
   get(k) { try { return localStorage.getItem("binsho." + k); } catch (e) { return null; } },
   set(k, v) { try { localStorage.setItem("binsho." + k, v); } catch (e) {} },
@@ -138,7 +128,6 @@ const fsIdx = Math.max(0, Math.min(FS.length - 1, parseInt(store.get("fs") ?? "1
 let theme = store.get("theme") || (sysDark && sysDark.matches ? "dark" : "light");
 const el = id => document.getElementById(id);
 
-// contact block, built as DOM nodes from the parts above
 function renderContact() {
   const join = parts => parts.join("");
   const box = el("contact");

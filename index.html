@@ -98,7 +98,7 @@
   .method p { font-size: calc(13px * var(--fs)); color: var(--text-secondary); margin: 6px 0 12px; }
   .disclaimer { font-size: calc(12px * var(--fs)); color: var(--text-muted); margin: 8px 0 0; }
   .glossary { font-size: calc(12px * var(--fs)); color: var(--text-muted); margin: 8px 0 0; }
-  footer { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--border);
+  footer { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--border);
     font-size: calc(12px * var(--fs)); color: var(--text-muted); }
   footer a, .glossary a { color: var(--text-secondary); }
   footer a:focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px; }
@@ -166,9 +166,11 @@
   <p class="glossary" data-i18n="glossary"></p>
 
   <footer>
-    <a href="https://www.linkedin.com/in/volkerwieben/">Volker Wieben</a>
-    <a href="https://github.com/vwieben/binsho-dashboard">vwieben/binsho-dashboard</a>
     <a href="impressum.html" data-i18n="legal"></a>
+    <span aria-hidden="true">·</span>
+    <a href="https://github.com/vwieben/binsho-dashboard">GitHub</a>
+    <span aria-hidden="true">·</span>
+    <a href="https://www.linkedin.com/in/volkerwieben/">LinkedIn</a>
   </footer>
 </main>
 </div>
@@ -187,12 +189,11 @@ const T = {
     method2: "<b>Out-of-sample only.</b> The record starts on the first day of operation. No backtest data is shown or blended in. Benchmarks are fully invested buy-and-hold positions from the same start date.",
     disclaimer: "Not investment advice, not an offer. Past performance is not a reliable indicator of future results. Short observation period, limited significance.",
     glossary: "<b>TWR</b> (time-weighted return): performance with the effect of deposits and withdrawals removed.<br><b>Max drawdown</b>: the largest decline from a previous peak to a later low.<br><b>Calmar ratio</b>: annual return (CAGR) divided by the size of the maximum drawdown.",
-    srcPaper: "Portfolio values from an IBKR paper account, execution and fees simulated by IBKR.",
-    srcLive: "Portfolio values from an IBKR account.",
+    src: "Portfolio values from an IBKR paper account, execution and fees simulated by IBKR.",
     stale: "Data delayed",
-    legal: "Legal notice · Privacy",
+    legal: "Legal notice &amp; Privacy",
     keyFigures: "Key figures",
-    live: "Live", paper: "Unattended paper mode live simulation",
+    paper: "Unattended paper mode live simulation",
     since: (d, n) => `Since ${d} · ${n} days`, asOf: d => `Data as of ${d}`,
     twr: "Return (TWR)", sinceStart: "since start", vs: n => `vs ${n}`, excess: "Relative return",
     maxDd: "Max drawdown", curDd: "Current drawdown", fromHigh: "from peak",
@@ -215,12 +216,11 @@ const T = {
     method2: "<b>Nur Out-of-Sample.</b> Die Aufzeichnung beginnt am ersten Betriebstag. Es werden keine Backtest-Daten gezeigt oder eingemischt. Benchmarks sind voll investierte Buy-and-hold-Positionen ab demselben Startdatum.",
     disclaimer: "Keine Anlageberatung, kein Angebot. Vergangene Wertentwicklung ist kein verlässlicher Indikator für künftige Ergebnisse. Kurzer Beobachtungszeitraum, eingeschränkte Aussagekraft.",
     glossary: "<b>TWR</b> (zeitgewichtete Rendite): Wertentwicklung ohne den Einfluss von Ein- und Auszahlungen.<br><b>Max. Drawdown</b>: größter Rückgang von einem bisherigen Höchststand bis zu einem späteren Tiefpunkt.<br><b>Calmar-Ratio</b>: jährliche Rendite (CAGR) geteilt durch den Betrag des maximalen Drawdowns.",
-    srcPaper: "Depotwerte aus einem IBKR-Paper-Konto, Ausführung und Gebühren simuliert durch IBKR.",
-    srcLive: "Depotwerte aus einem IBKR-Konto.",
+    src: "Depotwerte aus einem IBKR-Paper-Konto, Ausführung und Gebühren simuliert durch IBKR.",
     stale: "Datenstand verzögert",
-    legal: "Impressum · Datenschutz",
+    legal: "Impressum &amp; Datenschutz",
     keyFigures: "Kennzahlen",
-    live: "Live", paper: "Unbeaufsichtigte Live-Simulation mit Papierdepot",
+    paper: "Unbeaufsichtigte Live-Simulation mit Papierdepot",
     since: (d, n) => `Seit ${d} · ${n} Tage`, asOf: d => `Datenstand ${d}`,
     twr: "Rendite (TWR)", sinceStart: "seit Start", vs: n => `ggü. ${n}`, excess: "Relative Rendite",
     maxDd: "Max. Drawdown", curDd: "Akt. Drawdown", fromHigh: "vom Höchststand",
@@ -424,10 +424,9 @@ function renderTiles(m) {
 
 function render(m) {
   const L = t();
-  const mode = m.mode === "live" ? L.live : L.paper;
   const stale = isStale(m.as_of) ? `<span class="stale">${L.stale}</span>` : "";
-  el("meta").innerHTML = `<span>${mode}</span><span>${L.since(fmtDate(m.start), m.days)}</span><span>${L.asOf(fmtDate(m.as_of))}</span>${stale}`;
-  el("src").textContent = m.mode === "live" ? L.srcLive : L.srcPaper;
+  el("meta").innerHTML = `<span>${L.paper}</span><span>${L.since(fmtDate(m.start), m.days)}</span><span>${L.asOf(fmtDate(m.as_of))}</span>${stale}`;
+  el("src").textContent = L.src;
   const b = m.benchmarks, k = m.kpi;
   renderTiles(m);
 
