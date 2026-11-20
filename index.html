@@ -58,10 +58,10 @@
   .tile .value.down { color: var(--kpi-neg); }
   .tile .value.none { color: var(--text-muted); font-weight: 400; }
   .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px 16px 8px; margin-bottom: 16px; }
-  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  .pair .card { margin-bottom: 0; display: flex; flex-direction: column; }
+  .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .pair .card { margin-bottom: 0; display: flex; flex-direction: column; min-width: 0; }
   .pair .legend { margin-top: auto; }
-  @media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .pair { grid-template-columns: minmax(0, 1fr); } }
   .card h2 { font-size: calc(15px * var(--fs)); margin: 0 0 2px; }
   .card .desc { font-size: calc(12px * var(--fs)); color: var(--text-secondary); margin: 0 0 8px; }
   .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: calc(12px * var(--fs)); color: var(--text-secondary); margin-bottom: 6px; }
@@ -259,8 +259,17 @@ function legend(id, series) {
   el(id).innerHTML = series.map(s => `<span style="--c:${s.c}">${s.name}</span>`).join("");
 }
 
+// Charts are drawn at the container's real pixel width (no viewBox scaling), so axis text keeps its
+// CSS px size on every screen. Same width -> same height and same left margin, so the two charts
+// side by side line up. Redrawn when the width or the text size changes.
+const charts = {};  // id -> [rows, series, opts]
 function lineChart(id, rows, series, opts) {
-  const host = el(id), W = 520, H = opts.h || 320, m = { t: 10, r: 12, b: 26, l: 48 };
+  charts[id] = [rows, series, opts];
+  const host = el(id), W = Math.floor(host.clientWidth); if (!W) return;
+  const fpx = 11 * FS[fsIdx];                                   // axis text size, as in .chart text
+  const H = Math.round(Math.max(200, Math.min(300, W * 0.62)));
+  const m = { t: 10, r: 12, b: Math.ceil(fpx + 15), l: Math.ceil(fpx * 4.4) + 8 };
+  host.dataset.w = W;
   const iw = W - m.l - m.r, ih = H - m.t - m.b, n = rows.length;
   let lo = Infinity, hi = -Infinity;
   rows.forEach(r => series.forEach(s => { const v = r[s.key]; if (v != null) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }));
@@ -272,7 +281,7 @@ function lineChart(id, rows, series, opts) {
   const step = niceStep((hi - lo) / 5), ticks = [];
   for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) ticks.push(v);
   const xt = [0, Math.round((n - 1) / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i);
-  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.label}">`;
+  let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.label}">`;
   ticks.forEach(v => svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/>
     <text x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${opts.tick(v, step)}</text>`);
   xt.forEach(i => svg += `<text x="${x(i)}" y="${H - 6}" text-anchor="${i === 0 ? "start" : i === n - 1 ? "end" : "middle"}">${fmtDate(rows[i].d)}</text>`);
@@ -294,13 +303,32 @@ function lineChart(id, rows, series, opts) {
     series.forEach((s, k) => { const p = el(`${id}-p${k}`); p.setAttribute("cx", x(i)); p.setAttribute("cy", y(rows[i][s.key])); p.setAttribute("visibility", "visible"); });
     tip.innerHTML = `<b>${fmtDate(rows[i].d)}</b>` + series.map(s => `<div><i style="--c:${s.c}"></i>${s.name}: ${opts.tip(rows[i][s.key])}</div>`).join("");
     tip.style.display = "block";
-    const px = x(i) * b.width / W, left = px + 14 + tip.offsetWidth > b.width ? px - tip.offsetWidth - 14 : px + 14;
-    tip.style.left = left + "px"; tip.style.top = "8px";
+    // horizontal: right of the crosshair, else left of it, else centred on it (narrow screens)
+    const k = b.width / W, px = x(i) * k, tw = tip.offsetWidth, th = tip.offsetHeight;
+    const left = px + 14 + tw <= b.width ? px + 14 : px - 14 - tw >= 0 ? px - 14 - tw : Math.max(0, Math.min(b.width - tw, px - tw / 2));
+    // vertical: top of the plot, unless that hides one of the markers -> bottom of the plot
+    const ys = series.map(s => y(rows[i][s.key]) * k);
+    const hides = top => left < px + 6 && left + tw > px - 6 && ys.some(v => v >= top - 6 && v <= top + th + 6);
+    let top = 8;
+    if (hides(top)) { const bottom = (m.t + ih) * k - th - 4; if (!hides(bottom)) top = bottom; }
+    tip.style.left = left + "px"; tip.style.top = top + "px";
   }
   function hide() { xl.setAttribute("visibility", "hidden"); tip.style.display = "none";
     series.forEach((s, k) => el(`${id}-p${k}`).setAttribute("visibility", "hidden")); }
   svgEl.addEventListener("pointermove", show); svgEl.addEventListener("pointerleave", hide);
 }
+
+function redrawCharts() { Object.keys(charts).forEach(id => lineChart(id, ...charts[id])); }
+if (window.ResizeObserver) {
+  let raf = 0;
+  new ResizeObserver(() => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      // only when a chart's width really changed (avoids redraw loops)
+      if (Object.keys(charts).some(id => +el(id).dataset.w !== Math.floor(el(id).clientWidth))) redrawCharts();
+    });
+  }).observe(document.querySelector(".pair"));
+} else window.addEventListener("resize", redrawCharts);
 
 function niceStep(raw) {
   const p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
@@ -381,6 +409,7 @@ function applyFs() {
   el("fs-dn").disabled = fsIdx === 0;
   el("fs-up").disabled = fsIdx === FS.length - 1;
   fitTiles();
+  redrawCharts();
 }
 function applyTheme() {
   el("root").dataset.theme = theme;
