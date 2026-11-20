@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Impressum · Binsho Dashboard</title>
+<style>
+  .viz-root {
+    --fs: 1;
+    color-scheme: light;
+    --surface-0: #f4f3ef; --surface-1: #fcfcfb;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #706e69;
+    --border: #e1e0d9; --accent: #2a78d6;
+  }
+  .viz-root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-0: #121211; --surface-1: #1a1a19;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #898781;
+    --border: #2c2c2a; --accent: #3987e5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .viz-root { background: var(--surface-0); color: var(--text-primary); min-height: 100vh;
+    font: calc(15px * var(--fs))/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 20px 48px; }
+  header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+  header h1 { font-size: calc(26px * var(--fs)); margin: 0 0 4px; letter-spacing: -0.01em; }
+  header p { margin: 0; }
+  .a11y { display: flex; gap: 8px; flex-wrap: wrap; }
+  .a11y .grp { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface-1); }
+  .a11y button { font: inherit; font-size: calc(13px * var(--fs)); color: var(--text-primary); background: transparent; border: 0;
+    min-width: 36px; min-height: 34px; padding: 4px 10px; cursor: pointer; }
+  .a11y .grp button + button { border-left: 1px solid var(--border); }
+  .a11y button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .a11y button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .card h2 { font-size: calc(15px * var(--fs)); margin: 0 0 8px; }
+  .card p { font-size: calc(14px * var(--fs)); color: var(--text-secondary); margin: 0 0 10px; }
+  .card p:last-child { margin-bottom: 0; }
+  address { font-style: normal; font-size: calc(14px * var(--fs)); }
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .back { font-size: calc(13px * var(--fs)); }
+  .err { padding: 16px; border: 1px solid var(--border); border-radius: 10px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="viz-root" id="root">
+<main>
+  <header>
+    <div>
+      <h1 data-i18n="title"></h1>
+      <p class="back"><a href="index.html" data-i18n="back"></a></p>
+    </div>
+    <div class="a11y" role="toolbar" id="a11y">
+      <div class="grp">
+        <button type="button" id="lang-de" lang="de">DE</button>
+        <button type="button" id="lang-en" lang="en">EN</button>
+      </div>
+      <div class="grp">
+        <button type="button" id="theme"></button>
+      </div>
+    </div>
+  </header>
+
+  <noscript><p class="err">Die Kontaktangaben werden per JavaScript angezeigt. · Contact details are shown with JavaScript.</p></noscript>
+
+  <section class="card">
+    <h2 data-i18n="ddg"></h2>
+    <address id="contact"></address>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="privacy"></h2>
+    <p data-i18n="p1"></p>
+    <p data-i18n="p2"></p>
+    <p data-i18n="p3"></p>
+  </section>
+</main>
+</div>
+
+<script>
+// ===========================================================================================
+// PLATZHALTER: Kontaktangaben hier eintragen (einzige Stelle in dieser Datei).
+// Die Angaben stehen absichtlich in Teilen und werden erst im Browser zusammengesetzt, damit
+// Anschrift und E-Mail-Adresse nicht als zusammenhängender Klartext im HTML stehen.
+// Jeder Eintrag ist eine Liste von Teilstücken, die ohne Trennzeichen aneinandergehängt werden,
+// z. B. strasse: ["Muster", "straße 1"]. Die E-Mail-Adresse getrennt nach Teil vor und nach dem @
+// eintragen, z. B. emailVor: ["max.", "muster"], emailNach: ["example", ".de"]; das @ setzt das Script.
+// ===========================================================================================
+const KONTAKT = {
+  name:      ["[NAME]"],
+  strasse:   ["[STRASSE]"],
+  plzOrt:    ["[PLZ ORT]"],
+  emailVor:  ["[EMAIL]"],
+  emailNach: [""],
+};
+// ===========================================================================================
+
+const T = {
+  de: {
+    title: "Impressum und Datenschutz",
+    back: "← Zurück zum Dashboard",
+    ddg: "Angaben gemäß § 5 DDG",
+    email: "E-Mail",
+    privacy: "Datenschutz",
+    p1: "Diese Website wird über GitHub Pages bereitgestellt, einen Dienst der GitHub Inc., USA. Beim Aufruf verarbeitet GitHub technisch notwendige Daten wie die IP-Adresse, um die Seite auszuliefern und den Dienst abzusichern.",
+    p2: "Diese Website setzt keine Cookies, verwendet kein Tracking und lädt keine externen Schriften oder sonstigen Inhalte von Drittanbietern. Die Einstellungen zu Sprache, Schriftgröße und Farbmodus werden nur lokal im Browser gespeichert und nicht übertragen.",
+    p3: 'Weitere Informationen: <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement">Datenschutzerklärung von GitHub</a>.',
+    toolbar: "Darstellung", langDe: "Deutsch", langEn: "English",
+    toDark: "Zum dunklen Modus wechseln", toLight: "Zum hellen Modus wechseln",
+  },
+  en: {
+    title: "Legal notice and privacy",
+    back: "← Back to the dashboard",
+    ddg: "Information pursuant to § 5 DDG (German Digital Services Act)",
+    email: "Email",
+    privacy: "Privacy",
+    p1: "This website is hosted on GitHub Pages, a service of GitHub Inc., USA. When the page is accessed, GitHub processes technically necessary data such as the IP address to deliver the page and secure the service.",
+    p2: "This website sets no cookies, uses no tracking and loads no external fonts or other third-party content. Settings for language, text size and colour mode are stored only locally in the browser and are not transmitted.",
+    p3: 'More information: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>.',
+    toolbar: "Display settings", langDe: "Deutsch", langEn: "English",
+    toDark: "Switch to dark mode", toLight: "Switch to light mode",
+  },
+};
+
+// settings shared with the dashboard (same keys)
+const store = {
+  get(k) { try { return localStorage.getItem("binsho." + k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem("binsho." + k, v); } catch (e) {} },
+};
+const FS = [0.9, 1, 1.15, 1.3];
+const sysDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+let lang = store.get("lang") || ((navigator.language || "en").toLowerCase().startsWith("de") ? "de" : "en");
+if (!T[lang]) lang = "de";
+const fsIdx = Math.max(0, Math.min(FS.length - 1, parseInt(store.get("fs") ?? "1", 10) || 0));
+let theme = store.get("theme") || (sysDark && sysDark.matches ? "dark" : "light");
+const el = id => document.getElementById(id);
+
+// contact block, built as DOM nodes from the parts above
+function renderContact() {
+  const join = parts => parts.join("");
+  const box = el("contact");
+  box.textContent = "";
+  [join(KONTAKT.name), join(KONTAKT.strasse), join(KONTAKT.plzOrt)].forEach(line => {
+    box.appendChild(document.createTextNode(line));
+    box.appendChild(document.createElement("br"));
+  });
+  const vor = join(KONTAKT.emailVor), nach = join(KONTAKT.emailNach);
+  const addr = nach ? vor + String.fromCharCode(64) + nach : vor;
+  box.appendChild(document.createTextNode(T[lang].email + ": "));
+  const a = document.createElement("a");
+  if (nach) a.href = "mailto:" + addr;
+  a.textContent = addr;
+  box.appendChild(a);
+}
+
+function applyTheme() {
+  el("root").dataset.theme = theme;
+  const L = T[lang], label = theme === "dark" ? L.toLight : L.toDark;
+  el("theme").textContent = theme === "dark" ? "☀" : "☾";
+  el("theme").setAttribute("aria-label", label); el("theme").title = label;
+}
+function applyText() {
+  const L = T[lang];
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(n => n.innerHTML = L[n.dataset.i18n]);
+  el("a11y").setAttribute("aria-label", L.toolbar);
+  el("lang-de").setAttribute("aria-pressed", lang === "de"); el("lang-de").title = L.langDe;
+  el("lang-en").setAttribute("aria-pressed", lang === "en"); el("lang-en").title = L.langEn;
+  applyTheme();
+  renderContact();
+}
+
+el("lang-de").addEventListener("click", () => { lang = "de"; store.set("lang", lang); applyText(); });
+el("lang-en").addEventListener("click", () => { lang = "en"; store.set("lang", lang); applyText(); });
+el("theme").addEventListener("click", () => { theme = theme === "dark" ? "light" : "dark"; store.set("theme", theme); applyTheme(); });
+if (sysDark && sysDark.addEventListener) sysDark.addEventListener("change", e => { if (!store.get("theme")) { theme = e.matches ? "dark" : "light"; applyTheme(); } });
+
+el("root").style.setProperty("--fs", FS[fsIdx]);
+applyText();
+</script>
+</body>
+</html>
