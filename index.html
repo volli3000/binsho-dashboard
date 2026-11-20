@@ -272,7 +272,7 @@ function lineChart(id, rows, series, opts) {
   const xt = [0, Math.round((n - 1) / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i);
   let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.label}">`;
   ticks.forEach(v => svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/>
-    <text x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${opts.tick(v)}</text>`);
+    <text x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${opts.tick(v, step)}</text>`);
   xt.forEach(i => svg += `<text x="${x(i)}" y="${H - 6}" text-anchor="${i === 0 ? "start" : i === n - 1 ? "end" : "middle"}">${fmtDate(rows[i].d)}</text>`);
   if (opts.base != null) svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(opts.base)}" y2="${y(opts.base)}" stroke="var(--text-muted)" stroke-width="1"/>`;
   [...series].reverse().forEach(s => {
@@ -331,13 +331,16 @@ function render(m) {
   fitTiles();
 
   const rows = m.series;
+  // axis decimals follow the tick step, so a narrow range never repeats a label
+  const tickDec = step => step >= 0.01 - 1e-9 ? 0 : 1;
+  // growth shown as change since start (index 100 -> 0 %), same format as the tiles
+  const chgRows = rows.map(r => { const o = { d: r.d }; S.forEach(s => o[s.key] = r[s.key] / 100 - 1); return o; });
   legend("legend-idx", S);
-  lineChart("chart-idx", rows, S, { label: L.chartGrowth, base: 100, tick: v => num(v, 0) + " %", tip: v => num(v, 2) + " %" });
-
+  lineChart("chart-idx", chgRows, S, { label: L.chartGrowth, base: 0, tick: (v, st) => pct(v, tickDec(st)), tip: v => pct(v, 1) });
   const ddRows = rows.map((r, i) => ({ d: r.d }));
   S.forEach(s => drawdownOf(rows, s.key).forEach((v, i) => ddRows[i][s.key] = v));
   legend("legend-dd", S);
-  lineChart("chart-dd", ddRows, S, { label: L.chartDd, zeroTop: true, base: 0, tick: v => pct(v, 0, false), tip: v => pct(v, 1, false) });
+  lineChart("chart-dd", ddRows, S, { label: L.chartDd, zeroTop: true, base: 0, tick: (v, st) => pct(v, tickDec(st), false), tip: v => pct(v, 1, false) });
 
   el("cmp").innerHTML = `<tr><th></th><th>${L.thReturn}</th><th>${L.thMaxDd}</th><th>${L.thExcess}</th><th>${L.thRatio}</th></tr>
     <tr><td>Binsho</td><td>${pct(k.twr)}</td><td>${pct(k.max_dd, 1, false)}</td><td>–</td><td>–</td></tr>` +
