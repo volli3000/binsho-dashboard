@@ -258,8 +258,8 @@ const shortName = key => S.find(s => s.key === key).name;
 const noteMark = key => ({ msci_world: "1", sp500: "2" })[key];
 // footnote text is the same in German and English (fund names are proper names)
 const FUND_NOTE = {
-  msci_world: "iShares Core MSCI World UCITS ETF, Acc, EUR · ISIN IE00B4L5Y983",
-  sp500:      "iShares Core S&amp;P 500 UCITS ETF, Acc, EUR · ISIN IE00B5BMR087",
+  msci_world: "ISIN IE00B4L5Y983 · iShares Core MSCI World UCITS ETF, Acc, EUR",
+  sp500:      "ISIN IE00B5BMR087 · iShares Core S&amp;P 500 UCITS ETF, Acc, EUR",
 };
 // Xetra calendar as in yoshi/portfolio/takt.py: weekdays except New Year, Good Friday, Easter Monday,
 // 1 May, 24-26 Dec and 31 Dec. Dates are handled as UTC midnight.
