@@ -80,7 +80,7 @@
   .method { padding-bottom: 4px; }
   .method p { font-size: calc(13px * var(--fs)); color: var(--text-secondary); margin: 6px 0 12px; }
   .disclaimer { font-size: calc(12px * var(--fs)); color: var(--text-muted); margin: 8px 0 0; }
-  .pos { color: var(--good); } .neg { color: var(--bad); }
+  .pos { color: var(--kpi-pos); } .neg { color: var(--kpi-neg); }
   .err { padding: 16px; border: 1px solid var(--bad); border-radius: 10px; color: var(--bad); }
 </style>
 </head>
@@ -211,18 +211,19 @@ const S = [
   { key: "sp500",      name: "S&P 500",    c: "var(--series-3)", w: 2 },
 ];
 const dec = s => lang === "de" ? s.replace(".", ",") : s;
-const pct = (x, d = 1, sign = true) => x == null ? "–" : (sign && x > 0 ? "+" : "") + dec((x * 100).toFixed(d)).replace("-", "−") + " %";
-const num = (x, d = 2) => x == null ? "–" : dec(x.toFixed(d)).replace("-", "−");
-const cls = x => x == null ? "" : x > 0 ? "pos" : x < 0 ? "neg" : "";
-// KPI tiles: one decimal, real minus (U+2212), "+" for positive (if signed), narrow no-break space (U+202F) before "%".
+// Percentages everywhere: real minus (U+2212), "+" for positive (if sign), narrow no-break space (U+202F) before "%".
 // Rounds half away from zero first, so -0.04 % shows as "0,0 %" (no sign, neutral colour).
-function kpiPct(x, signed = true) {
-  if (x == null) return null;
-  const r = Math.sign(x) * Math.round(Math.abs(x) * 1000) / 10;
-  const sign = r < 0 ? "−" : r > 0 && signed ? "+" : "";
-  return sign + dec(Math.abs(r).toFixed(1)) + " %";
+function pct(x, d = 1, sign = true) {
+  if (x == null) return "–";
+  const f = Math.pow(10, d), r = Math.sign(x) * Math.round(Math.abs(x) * 100 * f) / f;
+  const s = r < 0 ? "−" : r > 0 && sign ? "+" : "";
+  return s + dec(Math.abs(r).toFixed(d)) + " %";
 }
+const num = (x, d = 2) => x == null ? "–" : dec(x.toFixed(d)).replace("-", "−");
+const kpiPct = (x, signed = true) => x == null ? null : pct(x, 1, signed);
 const kpiTone = s => s.startsWith("+") ? "up" : s.startsWith("−") ? "down" : "";
+// table colour follows the displayed (rounded) value, like the tiles
+const cls = x => x == null ? "" : ({ up: "pos", down: "neg" })[kpiTone(pct(x))] || "";
 // Equal columns: 6 in a row, else 3, else 2, else 1 — never 4 or 5, so rows stay full.
 // Width needed per tile is measured from its widest single-line text, so language and text size are covered.
 function fitTiles() {
@@ -321,7 +322,7 @@ function render(m) {
 
   const rows = m.series;
   legend("legend-idx", S);
-  lineChart("chart-idx", rows, S, { label: L.chartGrowth, base: 100, tick: v => num(v, 0) + " %", tip: v => num(v, 2) + " %" });
+  lineChart("chart-idx", rows, S, { label: L.chartGrowth, base: 100, tick: v => num(v, 0) + " %", tip: v => num(v, 2) + " %" });
 
   const ddRows = rows.map((r, i) => ({ d: r.d }));
   S.forEach(s => drawdownOf(rows, s.key).forEach((v, i) => ddRows[i][s.key] = v));
