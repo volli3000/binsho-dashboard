@@ -77,6 +77,13 @@
   th:first-child, td:first-child { text-align: left; }
   td:not(:first-child) { white-space: nowrap; }
   th { color: var(--text-secondary); font-weight: 600; }
+  .table-wrap { overflow-x: auto; }
+  .note { font-size: calc(12px * var(--fs)); color: var(--text-muted); margin: 8px 0 8px; }
+  @media (max-width: 480px) {
+    table { font-size: calc(12px * var(--fs)); }
+    th, td { padding: 6px 3px; }
+    .card.cmp { padding-left: 10px; padding-right: 10px; }
+  }
   .method { padding-bottom: 4px; }
   .method p { font-size: calc(13px * var(--fs)); color: var(--text-secondary); margin: 6px 0 12px; }
   .disclaimer { font-size: calc(12px * var(--fs)); color: var(--text-muted); margin: 8px 0 0; }
@@ -126,9 +133,10 @@
   </section>
   </div>
 
-  <section class="card">
+  <section class="card cmp">
     <h2 data-i18n="comparison"></h2>
-    <table id="cmp"></table>
+    <div class="table-wrap"><table id="cmp"></table></div>
+    <p class="note" id="cmp-note"></p>
   </section>
 
   <section class="card method">
@@ -210,6 +218,8 @@ const S = [
   { key: "msci_world", name: "MSCI World", c: "var(--series-2)", w: 2 },
   { key: "sp500",      name: "S&P 500",    c: "var(--series-3)", w: 2 },
 ];
+const shortName = key => S.find(s => s.key === key).name;
+const noteMark = key => ({ msci_world: "1", sp500: "2" })[key];
 const dec = s => lang === "de" ? s.replace(".", ",") : s;
 // Percentages everywhere: real minus (U+2212), "+" for positive (if sign), narrow no-break space (U+202F) before "%".
 // Rounds half away from zero first, so -0.04 % shows as "0,0 %" (no sign, neutral colour).
@@ -331,8 +341,10 @@ function render(m) {
 
   el("cmp").innerHTML = `<tr><th></th><th>${L.thReturn}</th><th>${L.thMaxDd}</th><th>${L.thExcess}</th><th>${L.thRatio}</th></tr>
     <tr><td>Binsho</td><td>${pct(k.twr)}</td><td>${pct(k.max_dd, 1, false)}</td><td>–</td><td>–</td></tr>` +
-    ["msci_world", "sp500"].map(key => `<tr><td>${b[key].name}</td><td>${pct(b[key].twr)}</td><td>${pct(b[key].max_dd, 1, false)}</td>
+    ["msci_world", "sp500"].map(key => `<tr><td>${shortName(key)}<sup>${noteMark(key)}</sup></td><td>${pct(b[key].twr)}</td><td>${pct(b[key].max_dd, 1, false)}</td>
       <td class="${cls(b[key].excess)}">${pct(b[key].excess)}</td><td>${num(b[key].dd_ratio)}</td></tr>`).join("");
+  // full fund names (from metrics.json) as a footnote, short names in the table
+  el("cmp-note").innerHTML = ["msci_world", "sp500"].map(key => `<sup>${noteMark(key)}</sup> ${b[key].name}`).join("<br>");
 }
 
 // ---- apply settings ----
