@@ -43,6 +43,7 @@
   header h1 { font-size: calc(26px * var(--fs)); margin: 0 0 4px; letter-spacing: -0.01em; }
   header p { margin: 0; color: var(--text-secondary); }
   .meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; color: var(--text-secondary); font-size: calc(13px * var(--fs)); }
+  .meta:empty::before { content: "\00a0"; }  /* keep one line reserved until the data arrives */
   /* KPI tiles: equal columns (6, 3, 2 or 1, set by fitTiles()), three fixed rows per tile */
   .tiles { display: grid; grid-template-columns: repeat(var(--cols, 6), minmax(0, 1fr)); gap: 12px; margin: 24px 0; }
   .tile { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; text-align: left;
@@ -115,7 +116,8 @@
     </div>
   </header>
 
-  <section class="tiles" id="tiles"></section>
+  <noscript><p class="err">Bitte JavaScript aktivieren. · Please enable JavaScript.</p></noscript>
+  <section class="tiles" id="tiles" aria-busy="true"></section>
 
   <div class="pair">
   <section class="card">
@@ -310,11 +312,11 @@ function drawdownOf(rows, key) {
   return rows.map(r => { peak = Math.max(peak, r[key]); return r[key] / peak - 1; });
 }
 
-function render(m) {
-  const L = t();
-  const mode = m.mode === "live" ? L.live : L.paper;
-  el("meta").innerHTML = `<span>${mode}</span><span>${L.since(fmtDate(m.start), m.days)}</span><span>${L.asOf(fmtDate(m.as_of))}</span>`;
-  const b = m.benchmarks, k = m.kpi, annual = k.cagr != null;
+// Tiles. Without data (m == null) they render as placeholders: same labels and contexts, value "–",
+// so height and column count are already final before metrics.json arrives (no layout jump).
+function renderTiles(m) {
+  const L = t(), host = el("tiles"); if (!host) return;
+  const k = m ? m.kpi : {}, b = m ? m.benchmarks : { msci_world: {}, sp500: {} }, annual = k.cagr != null;
   // [label, value, tone, context]; tone "signed" colours by sign, "neutral" never does
   const tiles = [
     [L.twr, kpiPct(k.twr), "signed", L.sinceStart],
@@ -324,11 +326,20 @@ function render(m) {
     [L.curDd, kpiPct(k.current_dd, false), "neutral", L.fromHigh],
     [L.calmar, annual && k.calmar != null ? num(k.calmar) : null, "neutral", annual ? `CAGR ${kpiPct(k.cagr) ?? "–"}` : L.after12],
   ];
-  el("tiles").innerHTML = tiles.map(([l, v, tone, s]) => {
+  host.innerHTML = tiles.map(([l, v, tone, s]) => {
     const c = v == null ? "none" : tone === "signed" ? kpiTone(v) : "";
     return `<div class="tile"><div class="label">${l}</div><div class="value ${c}">${v ?? "–"}</div><div class="ctx">${s || "&nbsp;"}</div></div>`;
   }).join("");
+  host.setAttribute("aria-busy", m ? "false" : "true");
   fitTiles();
+}
+
+function render(m) {
+  const L = t();
+  const mode = m.mode === "live" ? L.live : L.paper;
+  el("meta").innerHTML = `<span>${mode}</span><span>${L.since(fmtDate(m.start), m.days)}</span><span>${L.asOf(fmtDate(m.as_of))}</span>`;
+  const b = m.benchmarks, k = m.kpi;
+  renderTiles(m);
 
   const rows = m.series;
   // axis decimals follow the tick step, so a narrow range never repeats a label
@@ -363,7 +374,7 @@ function applyText() {
   el("fs-up").setAttribute("aria-label", L.larger); el("fs-up").title = L.larger;
   applyTheme();
   const err = document.querySelector(".err"); if (err) err.textContent = L.noData;
-  if (data) render(data);
+  if (data) render(data); else renderTiles(null);
 }
 function applyFs() {
   el("root").style.setProperty("--fs", FS[fsIdx]);
