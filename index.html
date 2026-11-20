@@ -222,6 +222,11 @@ const S = [
 ];
 const shortName = key => S.find(s => s.key === key).name;
 const noteMark = key => ({ msci_world: "1", sp500: "2" })[key];
+// footnote text is the same in German and English (fund names are proper names)
+const FUND_NOTE = {
+  msci_world: "iShares Core MSCI World UCITS ETF, Acc, EUR · ISIN IE00B4L5Y983",
+  sp500:      "iShares Core S&amp;P 500 UCITS ETF, Acc, EUR · ISIN IE00B5BMR087",
+};
 const dec = s => lang === "de" ? s.replace(".", ",") : s;
 // Percentages everywhere: real minus (U+2212), "+" for positive (if sign), narrow no-break space (U+202F) before "%".
 // Rounds half away from zero first, so -0.04 % shows as "0,0 %" (no sign, neutral colour).
@@ -385,8 +390,8 @@ function render(m) {
     <tr><td>Binsho</td><td>${pct(k.twr)}</td><td>${pct(k.max_dd, 1, false)}</td><td>–</td><td>–</td></tr>` +
     ["msci_world", "sp500"].map(key => `<tr><td>${shortName(key)}<sup>${noteMark(key)}</sup></td><td>${pct(b[key].twr)}</td><td>${pct(b[key].max_dd, 1, false)}</td>
       <td class="${cls(b[key].excess)}">${pct(b[key].excess)}</td><td>${num(b[key].dd_ratio)}</td></tr>`).join("");
-  // full fund names (from metrics.json) as a footnote, short names in the table
-  el("cmp-note").innerHTML = ["msci_world", "sp500"].map(key => `<sup>${noteMark(key)}</sup> ${b[key].name}`).join("<br>");
+  // full fund names with ISIN as a footnote (fixed here, not from metrics.json), short names in the table
+  el("cmp-note").innerHTML = ["msci_world", "sp500"].map(key => `<sup>${noteMark(key)}</sup> ${FUND_NOTE[key]}`).join("<br>");
 }
 
 // ---- apply settings ----
