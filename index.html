@@ -96,11 +96,13 @@
   }
   .method { padding-bottom: 4px; }
   .method p { font-size: calc(13px * var(--fs)); color: var(--text-secondary); margin: 6px 0 12px; }
-  .disclaimer { font-size: calc(12px * var(--fs)); color: var(--text-muted); margin: 8px 0 0; }
-  .glossary { font-size: calc(12px * var(--fs)); color: var(--text-muted); margin: 8px 0 0; }
+  .method p.glossary, .disclaimer { font-size: calc(12px * var(--fs)); color: var(--text-secondary); }
+  .method p.glossary { margin: 12px 0 8px; }
+  .disclaimer { margin: 8px 0 0; }
   footer { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--border);
     font-size: calc(12px * var(--fs)); color: var(--text-muted); }
-  footer a, .glossary a { color: var(--text-secondary); }
+  footer a { color: var(--text-secondary); text-decoration: none; }
+  footer a:hover { text-decoration: none; }
   footer a:focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px; }
   .pos { color: var(--kpi-pos); } .neg { color: var(--kpi-neg); }
   .err { padding: 16px; border: 1px solid var(--bad); border-radius: 10px; color: var(--bad); }
@@ -160,10 +162,10 @@
     <h2 data-i18n="method"></h2>
     <p data-i18n="method1"></p>
     <p data-i18n="method2"></p>
+    <p class="glossary" data-i18n="glossary"></p>
   </section>
 
   <p class="disclaimer" data-i18n="disclaimer"></p>
-  <p class="glossary" data-i18n="glossary"></p>
 
   <footer>
     <a href="impressum.html" data-i18n="legal"></a>
@@ -187,7 +189,7 @@ const T = {
     method: "Method",
     method1: "<b>Return</b> is time-weighted (TWR), after trading commissions and before taxes: deposits and withdrawals are removed, so the figure reflects the strategy, not the timing of capital. <b>Drawdown</b> is measured on that return index. <b>Drawdown ratio</b> = Binsho's maximum drawdown divided by the benchmark's over the same period; below 1 means shallower losses. It is shown once the benchmark has fallen at least 1 %. <b>CAGR</b> and <b>Calmar ratio</b> (CAGR ÷ max drawdown) are shown after 12 months.",
     method2: "<b>Out-of-sample only.</b> The record starts on the first day of operation. No backtest data is shown or blended in. Benchmarks are fully invested buy-and-hold positions from the same start date.",
-    disclaimer: "Not investment advice, not an offer. Past performance is not a reliable indicator of future results. Short observation period, limited significance.",
+    disclaimer: "Legal notice: Not investment advice or a recommendation, not an offer. Past performance is not a reliable indicator of future results. Short observation period, limited significance.",
     glossary: "<b>TWR</b> (time-weighted return): performance with the effect of deposits and withdrawals removed.<br><b>Max drawdown</b>: the largest decline from a previous peak to a later low.<br><b>Calmar ratio</b>: annual return (CAGR) divided by the size of the maximum drawdown.",
     src: "Portfolio values from an IBKR paper account, execution and fees simulated by IBKR.",
     stale: "Data delayed",
@@ -214,7 +216,7 @@ const T = {
     method: "Methode",
     method1: "<b>Rendite</b> ist zeitgewichtet (TWR), nach Handelsgebühren und vor Steuern: Ein- und Auszahlungen sind herausgerechnet, die Kennzahl zeigt also die Strategie, nicht den Zeitpunkt des Kapitals. <b>Drawdown</b> wird auf diesem Renditeindex gemessen. <b>Drawdown-Verhältnis</b> = maximaler Drawdown von Binsho geteilt durch den der Benchmark im selben Zeitraum; ein Wert unter 1 bedeutet flachere Verluste. Es wird angezeigt, sobald die Benchmark mindestens 1 % gefallen ist. <b>CAGR</b> und <b>Calmar-Ratio</b> (CAGR ÷ max. Drawdown) werden nach 12 Monaten angezeigt.",
     method2: "<b>Nur Out-of-Sample.</b> Die Aufzeichnung beginnt am ersten Betriebstag. Es werden keine Backtest-Daten gezeigt oder eingemischt. Benchmarks sind voll investierte Buy-and-hold-Positionen ab demselben Startdatum.",
-    disclaimer: "Keine Anlageberatung, kein Angebot. Vergangene Wertentwicklung ist kein verlässlicher Indikator für künftige Ergebnisse. Kurzer Beobachtungszeitraum, eingeschränkte Aussagekraft.",
+    disclaimer: "Rechtlicher Hinweis: Keine Anlageberatung oder -empfehlung, kein Angebot. Vergangene Wertentwicklung ist kein verlässlicher Indikator für künftige Ergebnisse. Kurzer Beobachtungszeitraum, eingeschränkte Aussagekraft.",
     glossary: "<b>TWR</b> (zeitgewichtete Rendite): Wertentwicklung ohne den Einfluss von Ein- und Auszahlungen.<br><b>Max. Drawdown</b>: größter Rückgang von einem bisherigen Höchststand bis zu einem späteren Tiefpunkt.<br><b>Calmar-Ratio</b>: jährliche Rendite (CAGR) geteilt durch den Betrag des maximalen Drawdowns.",
     src: "Depotwerte aus einem IBKR-Paper-Konto, Ausführung und Gebühren simuliert durch IBKR.",
     stale: "Datenstand verzögert",
