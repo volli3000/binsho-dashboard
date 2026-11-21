@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
+<meta name="robots" content="noindex, nofollow, noai, noimageai">
 <title>Impressum · Binsho Dashboard</title>
 <style>
   .viz-root {
@@ -81,12 +81,13 @@
 </div>
 
 <script>
+// Base64 (UTF-8), wird erst im Browser dekodiert.
 const KONTAKT = {
-  name:      ["Vol", "ker Wie", "ben"],
-  strasse:   ["Ringbahn", "stra", "ße 1", "9"],
-  plzOrt:    ["120", "51 Ber", "lin"],
-  emailVor:  ["binsho", ".dash", "board"],
-  emailNach: ["proton", "mail", ".com"],
+  name:      "Vm9sa2VyIFdpZWJlbg==",
+  strasse:   "UmluZ2JhaG5zdHJhw59lIDE5",
+  plzOrt:    "MTIwNTEgQmVybGlu",
+  emailVor:  "Ymluc2hvLmRhc2hib2FyZA==",
+  emailNach: "cHJvdG9ubWFpbC5jb20=",
 };
 
 const T = {
@@ -129,7 +130,7 @@ let theme = store.get("theme") || (sysDark && sysDark.matches ? "dark" : "light"
 const el = id => document.getElementById(id);
 
 function renderContact() {
-  const join = parts => parts.join("");
+  const join = b64 => new TextDecoder().decode(Uint8Array.from(atob(b64), c => c.charCodeAt(0)));
   const box = el("contact");
   box.textContent = "";
   [join(KONTAKT.name), join(KONTAKT.strasse), join(KONTAKT.plzOrt)].forEach(line => {
